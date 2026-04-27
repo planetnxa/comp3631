@@ -1,0 +1,6 @@
+[console_scripts]
+first_step = ros2_project_sc22amll.first_step:main
+fourth_step = ros2_project_sc22amll.fourth_step:main
+second_step = ros2_project_sc22amll.second_step:main
+third_step = ros2_project_sc22amll.third_step:main
+
