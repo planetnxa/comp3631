@@ -160,7 +160,7 @@ class Robot(Node):
         #Check if a flag has been set = colour object detected - follow the colour object
         if self.blueFlag == True:
             print("Blue found")
-            self.action_client._cancel_goal_async
+            #self.action_client._cancel_goal_async
 
             
 
@@ -168,23 +168,29 @@ class Robot(Node):
             err = cx - imgCtr
 
             print("backward")
-            self.too_close = True
-            self.walk_backward()
+            #self.too_close = True
+            # self.walk_backward()
 
             desired_velocity = Twist()
-            desired_velocity.angualar.z = 0.02 *err
+            desired_velocity.angular.z = 0.02 *err
 
-            self.publish(desired_velocity)
+           # self.publisher.publish(desired_velocity)
 
-            if cv2.contourArea(c) > 1000:
-                self.stop
+            if cv2.contourArea(c) > 10000:
+                self.stop()
+                desired_velocity.linear.x = 0
+                desired_velocity.angular.z = 0
                 # Too close to object, need to move backwards
             
-            if cv2.contourArea(c) <= 1000 :
+            if cv2.contourArea(c) <= 10000 :
                 print("forward")
                 self.too_close = False
+
                 # Too far away from object, need to move forwards
-                self.walk_forward()
+                desired_velocity.linear.x = 0.2
+            
+            self.publisher.publish(desired_velocity)
+
         else:
             if self.goalIndx < len(self.goals):
                x,y, yaw = self.goals[self.goalIndx]
@@ -197,16 +203,15 @@ class Robot(Node):
         desired_velocity = Twist()
         desired_velocity.linear.x = 0.2  # Forward with 0.2 m/s
 
-        for _ in range(30):  # Stop for a brief moment
-            self.publisher.publish(desired_velocity)
-            self.rate.sleep()
+        self.publisher.publish(desired_velocity)
+
 
     def walk_backward(self):
         desired_velocity = Twist()
         desired_velocity.linear.x = -0.2  # Backward with 0.2 m/s
-        for _ in range(30):  # Stop for a brief moment
-            self.publisher.publish(desired_velocity)
-            self.rate.sleep()
+
+        self.publisher.publish(desired_velocity)
+
 
     def stop(self):
         desired_velocity = Twist()
@@ -237,14 +242,15 @@ def main():
     thread.start()
 
     try:
-        while rclpy.ok():
-            if robot.blueFlag == True:
-                if robot.too_close == True:
-                    robot.walk_backward()
-                else:
-                    robot.walk_forward()
-            else:
-               robot.stop()
+        time.sleep(0.1)
+        # while rclpy.ok():
+        #     if robot.blueFlag == True:
+        #         if robot.too_close == True:
+        #             robot.walk_backward()
+        #         else:
+        #             robot.walk_forward()
+        #     else:
+        #        robot.stop()
     except ROSInterruptException:
         pass
 # Check if the node is executing in the main path
