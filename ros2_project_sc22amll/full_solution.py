@@ -1,6 +1,3 @@
-# Exercise 4 - following a colour (green) and stopping upon sight of another (blue).
-
-#from __future__ import division
 import threading
 import sys, time
 import cv2
@@ -25,15 +22,23 @@ class Robot(Node):
         super().__init__('robot')
         self.action_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
 
-        self.goals = [(0.732, -7.45, 0.1),
-        (2, -4.7, 0.0),
-        (1.5, -1.5, 0.145),
-        (-1.8, 5, 0.2),]
+        self.goals = [
+        (-8.77,-8.7,0,2),
+        (-5.5, 4.47,0.02),
+        (7.0, -1.0, 0.2),
+        (-8.3, -1.0, 0.2)
+          ]
 
+        self.goals = [
+            (0.72, -7.45, 0.1),
+            (2.0, -4.7, 0.0),
+            (1.5, -1.5, 0.145),
+            (-1.8, 5.0, 0.2)
+        ]
         self.goalIndx = 0
-
         
-        # Initialise some standard movement messages such as a simple move forward and a message with all zeroes (stop)
+
+                # Initialise some standard movement messages such as a simple move forward and a message with all zeroes (stop)
         # We covered which topic to subscribe to should you wish to receive image data
         self.bridge = CvBridge()
         self.subscription = self.create_subscription(Image, '/camera/image_raw', self.callback, 10)
@@ -65,6 +70,15 @@ class Robot(Node):
         self.send_goal_future = self.action_client.send_goal_async(goal_msg, feedback_callback=self.feedback_callback)
         self.send_goal_future.add_done_callback(self.goal_response_callback)
 
+
+    def goal_response_callback(self, future):
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self.get_logger().info('Goal rejected')
+            return
+
+    def feedback_callback(self, feedback_msg):
+        feedback = feedback_msg.feedback
 
     def callback(self, data):
         image = self.bridge.imgmsg_to_cv2(data, 'bgr8')
@@ -117,9 +131,10 @@ class Robot(Node):
 
             #Moments can calculate the center of the contour
             M = cv2.moments(c)
-            
-            cx = int(M['m10']/M['m00']) 
-            cy = int(M['m01']/M['m00']) # read
+        
+            if M['m00'] != 0:
+                cx = int(M['m10']/M['m00']) 
+                cy = int(M['m01']/M['m00']) # read
             
             ##########
             self.blueCx = cx #redunds?
@@ -167,12 +182,12 @@ class Robot(Node):
             imgCtr = 160
             err = cx - imgCtr
 
-            print("backward")
+            # print("backward")
             #self.too_close = True
             # self.walk_backward()
 
             desired_velocity = Twist()
-            desired_velocity.angular.z = 0.02 *err
+            desired_velocity.angular.z = 0.002 *err
 
            # self.publisher.publish(desired_velocity)
 
@@ -193,7 +208,8 @@ class Robot(Node):
 
         else:
             if self.goalIndx < len(self.goals):
-               x,y, yaw = self.goals[self.goalIndx]
+               x,y, yaw = self.goals[0]
+               
                self.send_goal(x,y,yaw)
                self.goalIndx = self.goalIndx + 1
             else:
@@ -242,15 +258,16 @@ def main():
     thread.start()
 
     try:
-        time.sleep(0.1)
-        # while rclpy.ok():
-        #     if robot.blueFlag == True:
-        #         if robot.too_close == True:
-        #             robot.walk_backward()
-        #         else:
-        #             robot.walk_forward()
-        #     else:
-        #        robot.stop()
+        
+        while rclpy.ok():
+            #time.sleep(0.1)
+            if robot.blueFlag == True:
+                if robot.too_close == True:
+                    robot.walk_backward()
+                else:
+                    robot.walk_forward()
+            else:
+               robot.stop()
     except ROSInterruptException:
         pass
 # Check if the node is executing in the main path
