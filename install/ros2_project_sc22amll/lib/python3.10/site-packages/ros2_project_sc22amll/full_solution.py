@@ -16,7 +16,7 @@ import signal
 
 class Robot(Node):
     def __init__(self):
-        super().__init__('cI')
+        super().__init__('full_solution')
         
         # Initialise a publisher to publish messages to the robot base
     

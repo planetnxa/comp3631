@@ -11,12 +11,20 @@ from geometry_msgs.msg import Twist, Vector3
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from rclpy.exceptions import ROSInterruptException
+from nav2_msgs.action import NavigateToPose
+from rclpy.action import ActionClient
+from math import sin, cos
+from geometry_msgs.msg import PoseStamped ## message!
+
+
 import signal
 
 
 class Robot(Node):
     def __init__(self):
-        super().__init__('cI')
+        super().__init__('robot')
+        self.action_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
+
         
         # Initialise a publisher to publish messages to the robot base
     
@@ -194,20 +202,18 @@ class Robot(Node):
 # handling exceptions and such
 def main():
 
-    robot.send_goal(0.732, -7.45, 0.1)
 
     def signal_handler(sig, frame):
         robot.stop()
         rclpy.shutdown()
 
-    
-
-    
+       
     # Instantiate your class
     # And rclpy.init the entire node
     rclpy.init(args=None)
     robot = Robot()
-    
+    robot.send_goal(0.732, -7.45, 0.1)
+
     # Ensure that the node continues running with rospy.spin()
     # You may need to wrap it in an exception handler in case of KeyboardInterrupts
     # Remember to destroy all image windows before closing node
