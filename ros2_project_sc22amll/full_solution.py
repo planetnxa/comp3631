@@ -23,18 +23,18 @@ class Robot(Node):
         self.action_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
 
         self.goals = [
-        (-8.77,-8.7,0,2),
-        (-5.5, 4.47,0.02),
-        (7.0, -1.0, 0.2),
-        (-8.3, -1.0, 0.2)
+        (-7.0,3.2),
+        (-5.5, -8.1),
+        (7.0, -5.0),
+        (6.3, 4.0)
           ]
 
-        self.goals = [
-            (0.72, -7.45, 0.1),
-            (2.0, -4.7, 0.0),
-            (1.5, -1.5, 0.145),
-            (-1.8, 5.0, 0.2)
-        ]
+        # self.goals = [
+        #     (0.72, -7.45, 0.1),
+        #     (2.0, -4.7, 0.0),
+        #     (1.5, -1.5, 0.145),
+        #     (-1.8, 5.0, 0.2)
+        # ]
         self.goalIndx = 0
         
 
@@ -48,7 +48,7 @@ class Robot(Node):
         self.blueFlag = False # iniit false flag
         self.blueCx = 0
         self.blueArea = 0
-        self.publisher = self.create_publisher(Twist, '/cmd_vel', 10) # publisher to send messages to robo base, 10 rate
+        self.publisher = self.create_publisher(Twist, '/cmd_vel', 30) # publisher to send messages to robo base, 10 rate
         self.rate = self.create_rate(10)  # 10 Hz
         self.too_close = False
 
@@ -164,20 +164,11 @@ class Robot(Node):
 
         #if the flag is true (colour has been detected)
         #print the flag or colour to test that it has been detected
-
-  
-        #Show the resultant images you have created. You can show all of them or just the end result if you wish to.
-        cv2.namedWindow('threshold_Feed2', cv2.WINDOW_NORMAL) 
-        cv2.imshow('threshold_Feed2', image)
-        cv2.resizeWindow('threshold_Feed2', 320, 240)
-        cv2.waitKey(3)
         
         #Check if a flag has been set = colour object detected - follow the colour object
         if self.blueFlag == True:
             print("Blue found")
             #self.action_client._cancel_goal_async
-
-            
 
             imgCtr = 160
             err = cx - imgCtr
@@ -208,9 +199,9 @@ class Robot(Node):
 
         else:
             if self.goalIndx < len(self.goals):
-               x,y, yaw = self.goals[0]
+               x,y = self.goals[self.goalIndx]
                
-               self.send_goal(x,y,yaw)
+               self.send_goal(x,y,-0.005)
                self.goalIndx = self.goalIndx + 1
             else:
                 self.goalIndx = 0
@@ -260,14 +251,14 @@ def main():
     try:
         
         while rclpy.ok():
-            #time.sleep(0.1)
-            if robot.blueFlag == True:
-                if robot.too_close == True:
-                    robot.walk_backward()
-                else:
-                    robot.walk_forward()
-            else:
-               robot.stop()
+            time.sleep(0.1)
+            # if robot.blueFlag == True:
+            #     if robot.too_close == True:
+            #         robot.walk_backward()
+            #     else:
+            #         robot.walk_forward()
+            # else:
+            #    robot.stop()
     except ROSInterruptException:
         pass
 # Check if the node is executing in the main path
